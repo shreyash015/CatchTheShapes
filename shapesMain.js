@@ -24,7 +24,7 @@ var first,second,third,fourth,fifth,sixth,seventh,eighth,nineth,tenth,eleventh;
 var scoredata;
 var shape;
 var shapes;
-var score=40;
+var score=0;
 var scoreString="Score \n";
 var choice = [];
 function create() {
@@ -52,7 +52,7 @@ function create() {
             shape.input.useHandCursor = true;
             shape.events.onInputDown.add(record, this);
             // shape.name = game.rnd.integerInRange(1, 11) + x.toString() + y.toString();
-            shape.name =num+" : "+ game.rnd.integerInRange(1, 11) + x.toString() + y.toString();
+            shape.name =num+" : "+ x.toString() + y.toString();
 	        shape.checkWorldBounds = true;
             shape.events.onOutOfBounds.add(alienOut, this);
 	    //alien.anchor.set(1);    
@@ -88,61 +88,60 @@ function create() {
     }
     
     t=game.add.text(10,0,"Level 1",{font:"40px Arial bold",fill:"white",align:"center"});
-    scoredata=game.add.text(window.innerWidth-15,0,'Score '+0,{font:"40px Arial bold",fill:"white"});
+    scoredata=game.add.text(window.innerWidth-15,0,'Score 00',{font:"40px Arial bold",fill:"white"});
     scoredata.anchor.set(1,0)
     
 }
 var level=1;
 var end,restart;
-function actionOnClick(){
-window.location = 'game.html';
-}
+
 
 var store=[];
 var flag = 0;
-function record(aliens){
-    //score+=10;
-    store.push(aliens.name.substr(0,2));
-    t.text=aliens.name.substr(0,2) + " : Selected "+store.length;
+function record(shp){
+    store.push(shp.name.substr(0,2));
+    t.text=shp.name.substr(0,2) + " : Selected "+store.length;
     //scoredata.text="Score "+score;
-    aliens.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
-    aliens.body.velocity.y = 20 + Math.random() * 100;
-    checkSelection(store);
+    shp.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
+    shp.body.velocity.y = 20 + Math.random() * 100;
+    checkSelection();
     t.text+= " : Flag "+flag;
     if(flag==1){
         flag=0;
         store = [];
     }else if(store.length>level){
         store = [];
-        scoredata.text="failed";
+        score-=10;
+        scoredata.text="Score "+score;
     }
 }
 
-function checkSelection(key){    
-        for(var i=0;i<key.length;i++){
+function checkSelection(){    
+        for(var i=0;i<store.length;i++){
+            //checking in the combination to find the match
             for(var j=0;j<5;j++){
                 var k = i;
-                while(k<choice[j].length && choice[j][k].name==key[k]){
-                    t.text="chk :"+k+":"+(choice[j].length-1);
+                while(k<choice[j].length && choice[j][k].name==store[k]){
+                    //t.text="chk :"+k+":"+(choice[j].length-1);
                     if(k == choice[j].length-1){
                         score+=20;
                         scoredata.text="Score "+score;
-                        var x=k;
-                        while(x>=0){
+                        var x=0;
+                        while(x<=k){
+
                             var num = game.rnd.integerInRange(1, 11);
                             if(num<10){
                                 num="0"+num;
                             }
-                            var block = game.add.sprite(window.innerWidth-((x+1)*50),80+(120*j), num);
-                            block.name=num;
+                            var block = game.add.sprite(window.innerWidth-((level-x)*50+50),80+(120*j), num);                            
                             block.scale.set(0.5);
-                            choice[j][x].reset(block);                             
-                            x--;
+                            choice[j][x].reset(block); 
+                            choice[j][x].name=num;                            
+                            x++;
                         }
                         flag=1;
                         return;
                     }
-                    
                     k++;                    
                 }
             }
@@ -154,10 +153,27 @@ function checkSelection(key){
 function alienOut(shape) {
 
     //  Move the alien to the top of the screen again
-    shape.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
+    var num = game.rnd.integerInRange(1, 11);
+            if(num<10){
+                num="0"+num;
+            }
+            var shp;
+            shp=shapes.create(game.rnd.integerInRange(30,(window.innerWidth*0.8-45)), 45, num);
+            shp.inputEnabled = true;
+            shp.input.useHandCursor = true;
+            shp.events.onInputDown.add(record, this);
+            // shape.name = game.rnd.integerInRange(1, 11) + x.toString() + y.toString();
+            shp.name =num+shape.name.substr(2,5);
+            shp.checkWorldBounds = true;
+            shp.events.onOutOfBounds.add(alienOut, this);
+        //alien.anchor.set(1);    
+            
+            shp.body.velocity.y = 20 +Math.random() * 100;
+
+    //shape.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
     //score-=5;
     //t="Level 1";
-    //scoredata.text="Score "+score;
+    ///scoredata.text="Score "+score;
     //  And give it a new random velocity
     shape.body.velocity.y = 20 + Math.random() * 100;
 }
