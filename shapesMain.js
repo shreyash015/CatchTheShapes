@@ -23,13 +23,14 @@ var t = "";
 var first,second,third,fourth,fifth,sixth,seventh,eighth,nineth,tenth,eleventh;
 var scoredata;
 var shape;
-var shapes;
+var shapes,timer,tevent;
 var score=0;
 var scoreString="Score \n";
 var choice = [];
 function create() {
     
     //  We only want world bounds on the left and right
+
     game.physics.setBoundsToWorld();
 	this.bg=game.add.sprite(0,0,'bg');
     this.bg.scale.set(1.5);
@@ -86,12 +87,23 @@ function create() {
             choice[i][j].scale.set(0.5);            
         }
     }
-    
-    t=game.add.text(10,0,"Level 1",{font:"40px Arial bold",fill:"white",align:"center"});
+    t=game.add.text(10,0,"Level "+level,{font:"40px Arial bold",fill:"white",align:"center"});
+    tevent=game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
     scoredata=game.add.text(window.innerWidth-15,0,'Score 00',{font:"40px Arial bold",fill:"white"});
     scoredata.anchor.set(1,0)
     
+    
 }
+var counter = 0;
+function updateCounter(){
+     counter++;     
+     if(counter>20){
+    counter=0;
+        
+     }
+    t.setText('Level ' +level+ ' Time '+ counter);
+}
+
 var level=1;
 var end,restart;
 
@@ -100,12 +112,12 @@ var store=[];
 var flag = 0;
 function record(shp){
     store.push(shp.name.substr(0,2));
-    t.text=shp.name.substr(0,2) + " : Selected "+store.length;
+    //t.text=shp.name.substr(0,2) + " : Selected "+store.length;
     //scoredata.text="Score "+score;
     shp.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
     shp.body.velocity.y = 20 + Math.random() * 100;
     checkSelection();
-    t.text+= " : Flag "+flag;
+    //t.text+= " : Flag "+flag;
     if(flag==1){
         flag=0;
         store = [];
@@ -133,7 +145,7 @@ function checkSelection(){
                             if(num<10){
                                 num="0"+num;
                             }
-                            var block = game.add.sprite(window.innerWidth-((level-x)*50+50),80+(120*j), num);                            
+                            var block = game.add.sprite(window.innerWidth-((1-x)*50+50),80+(120*j), num);                            
                             block.scale.set(0.5);
                             choice[j][x].reset(block); 
                             choice[j][x].name=num;                            
@@ -177,17 +189,13 @@ function alienOut(shape) {
     //  And give it a new random velocity
     shape.body.velocity.y = 20 + Math.random() * 100;
 }
-function updateCounter(){
-     counter++;     
-     if(counter>30){
-	counter=0;
-        check();
-     }
-	scoredata.setText('Score ' + counter);
-}
+
 
 function update(){
-    
+    if(score>level*50){
+        t.text = "Level "+level;
+        level++;
+    }
  
 }
 
