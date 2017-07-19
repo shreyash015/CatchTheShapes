@@ -1,22 +1,21 @@
-
 //var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: create , update: update});
 var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'phaser-example', { preload: preload, create: create , update: update});
 
 function preload() {
-
+// pre loading of the images
     game.load.image('01', 'images/1.png');
-	game.load.image('02', 'images/2.png');
-	game.load.image('03', 'images/3.png');
-	game.load.image('04', 'images/4.png');
-	game.load.image('05', 'images/5.png');
-	game.load.image('06', 'images/6.png');
-	game.load.image('07', 'images/7.png');
-	game.load.image('08', 'images/8.png');
-	game.load.image('09', 'images/9.png');
-	game.load.image('10', 'images/10.png');
-	game.load.image('11', 'images/11.png');	
+    game.load.image('02', 'images/2.png');
+    game.load.image('03', 'images/3.png');
+    game.load.image('04', 'images/4.png');
+    game.load.image('05', 'images/5.png');
+    game.load.image('06', 'images/6.png');
+    game.load.image('07', 'images/7.png');
+    game.load.image('08', 'images/8.png');
+    game.load.image('09', 'images/9.png');
+    game.load.image('10', 'images/10.png');
+    game.load.image('11', 'images/11.png'); 
     game.load.image('bg', 'images/bg.png');
-	game.load.image('grid', 'images/grid.png');	
+    game.load.image('grid', 'images/grid.png'); 
 }
 
 var t = "";
@@ -32,62 +31,75 @@ function create() {
     //  We only want world bounds on the left and right
 
     game.physics.setBoundsToWorld();
-	this.bg=game.add.sprite(0,0,'bg');
+    //setting the background of the game
+    this.bg=game.add.sprite(0,0,'bg');
     this.bg.scale.set(1.5);
+    //setting the shape combinations grid on the right hand side of the pannel
+    //and also dividing the screen into two parts in the ratio 80% and 20%
     this.grid=game.add.sprite(window.innerWidth-(window.innerWidth*0.2),45,'grid');
     this.grid.scale.set(1.5);
+    //initializing the sprite group 
     shapes = game.add.group();
     shapes.enableBody = true;
+    //setting Phaser.Physics.ARCADE to add motion to the sprites
     shapes.physicsBodyType = Phaser.Physics.ARCADE;
-
+    //forloop to create the group of sprites
     for (var y = 0; y < 1; y++)
     {
         for (var x = 0; x < 12; x++)
         {
+            //generating a random number between 1-11 to select the random sprite
             var num = game.rnd.integerInRange(1, 11);
             if(num<10){
                 num="0"+num;
             }
+            //creating the individual sprite and setting them to random position in the view
             shape = shapes.create(game.rnd.integerInRange(30,(window.innerWidth*0.8-45)), 45, num);
             shape.inputEnabled = true;
             shape.input.useHandCursor = true;
+            //setting onInputDown function call( here calling record() function and passing the current instance of the sprite as a parameter)
             shape.events.onInputDown.add(record, this);
-            // shape.name = game.rnd.integerInRange(1, 11) + x.toString() + y.toString();
+            //setting the a unique name to the sprite to identify them uniquely in the view
             shape.name =num+" : "+ x.toString() + y.toString();
-	        shape.checkWorldBounds = true;
+            shape.checkWorldBounds = true;
+            //setting a check for the sprite when it goes out of bound then call alienOut() function and passing the current instance of the sprite
             shape.events.onOutOfBounds.add(alienOut, this);
-	    //alien.anchor.set(1);
+            //setting random velocity to the sprite
             shape.body.velocity.y = 20 +Math.random() * 100;
         }
     }
     
     var data;
     
-
+        //creating the list of combinations and also adjusting their positions 
         var pos = 80;
+        //for loop to create every combination, here 5
     for(var i=0;i<5;i++,pos+=125){
         data=[];
         var num = game.rnd.integerInRange(1, 11);
         if(num<10){
             num="0"+num;
         }
+        //adding first random sprite to data array
         data.push(game.add.sprite(window.innerWidth-150,pos,num ));
         data[0].name=num;
+        data[0].scale.set(0.5);
         num = game.rnd.integerInRange(1, 11);
         if(num<10){
             num="0"+num;
         }
+        //adding the second random sprite to data array
         data.push(game.add.sprite(window.innerWidth-100,pos, num));
         data[1].name=num;
+        data[1].scale.set(0.5); 
+        //now adding the random combination of sprites in data array to choice array
         choice.push(data);
     }
-    for(var i=0;i<5;i++){
-        for(var j=0;j<2;j++){
-            choice[i][j].scale.set(0.5);            
-        }
-    }
+    //setting the level info in text at top left pannel
     t=game.add.text(10,0,"Level "+level,{font:"40px Arial bold",fill:"white",align:"center"});
+    //initializing the time event and calling updateCounter() every second
     tevent=game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
+    //setting the score value in text format at the top right corner
     scoredata=game.add.text(window.innerWidth-15,0,'Score 00',{font:"40px Arial bold",fill:"white"});
     scoredata.anchor.set(1,0)
     
@@ -95,31 +107,45 @@ function create() {
 }
 var end,start;
 var target = 150;
-var counter = 35;
+//by default the counter begins from 90
+var counter = 90;
+//function to update the counter in decreesing order
 function updateCounter(){
-     counter--;          
-     if(counter<=0){
+     counter--;
+     //checking if the counter reached 0          
+     if(counter=0){
+        //checking if the score reaches the target or not
         if(score>=target){
+            //increasing the level
             level++;
-            counter=80-(level*5);
+            //resetting the timer but this time 5sec less that earlier
+            counter=90-(level*5);
+            //setting new target
             target+=150;
         }else{
+            //removing the time event to stop the timer
             game.time.events.remove(tevent);
+            //calling all the sprites of the group shapes and removing them
             shapes.callAll('kill');
+            //setting end comment
             end = game.add.text(window.innerWidth*0.5,window.innerHeight*0.4,"Game Over\nYour Score "+score,{font:"40px Arial bold",fill:"black",align:"center"});
             end.anchor.set(1,0);
+            //setting the start text button
             start = game.add.text(window.innerWidth*0.49,window.innerHeight*0.6,"START",{font:"60px Arial bold",fill:"orange",align:"center"});
             start.anchor.set(1,0);
             start.inputEnabled = true;
             start.input.useHandCursor = true;
+            //setting onInputDown event to check on Click and call startGame() function
             start.events.onInputDown.add(startGame, this);
         }
         
      }
+     //resetting the level,time,target and life values in view
     t.setText('Level ' +level+ ' Time '+ counter+" Target "+target+" Life "+life);
 }
 
 function startGame(button) {
+    //reload the page
     window.location = 'game.html';
 }
 var level=1;
@@ -128,31 +154,36 @@ var end,restart;
 
 var store=[];
 var flag = 0;
+//record function to check the shape clicked, if it is corect one or not
 function record(shp){
+    //adding the clicked sprite name to the store array
     store.push(shp.name.substr(0,2));
-    //t.text=shp.name.substr(0,2) + " : Selected "+store.length;
-    //scoredata.text="Score "+score;
+    //generates a random object within the defined area
     shp.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
+    //sets a random velocity to the shape.
     shp.body.velocity.y = 20 + Math.random() * 100;
     checkSelection();
     //t.text+= " : Flag "+flag;
     if(flag==1){
         flag=0;
         store = [];
-    }else if(store.length>level){
+    }else if(store.length>1){
         store = [];
         life--;        
     }
 }
+
+//initial alue of life is set to 3
 var life = 3;
+
+//the function is used to check the user selcted shapes with the combination provided to the right.
 function checkSelection(){    
         for(var i=0;i<store.length;i++){
-            //checking in the combination to find the match
+            //checking in the combination provided to the right to find the match
             for(var j=0;j<5;j++){
-                var k = i;
-                while(k<choice[j].length && choice[j][k].name==store[k]){
-                    //t.text="chk :"+k+":"+(choice[j].length-1);
-                    if(k == choice[j].length-1){
+                var k = 0;
+                while(k<store.length && choice[j][k].name==store[k]){
+                    if(k == 1){
                         score+=20;
                         scoredata.text="Score "+score;
                         var x=0;
@@ -162,15 +193,19 @@ function checkSelection(){
                             if(num<10){
                                 num="0"+num;
                             }
-                            var block = game.add.sprite(window.innerWidth-((1-x)*50+50),80+(120*j), num);                            
+
+                            //once the selection is satisfies, new shapes are added and the old ones are destroyed
+                            var block = game.add.sprite(window.innerWidth-((1-x)*50+100),80+(120*j), num);                            
                             block.scale.set(0.5);
-                            choice[j][x].reset(block); 
-                            choice[j][x].name=num;                            
+                            choice[j][x].destroy(); 
+                            choice[j][x] = block;
+                            choice[j][x].name=num;               
                             x++;
                         }
                         flag=1;
                         return;
                     }
+                    flag=2;
                     k++;                    
                 }
             }
@@ -178,7 +213,7 @@ function checkSelection(){
 }
     
 
-
+//functon defined for objects that go out of the screen boundry
 function alienOut(shape) {
 
     //  Move the alien to the top of the screen again
@@ -207,16 +242,17 @@ function alienOut(shape) {
     shape.body.velocity.y = 20 + Math.random() * 100;
 }
 
-
+//this function is run continuusly throughout to update the variables
 function update(){
     if(counter>0 && score>=target){
         level++;
         target+=150;
-        counter=100-(level*5);
+        counter=90-(level*5);
     }
     if(life<=0){
         t.setText('Level ' +level+ ' Time '+ counter+" Target "+target+" Life "+life);
         game.time.events.remove(tevent);
+            //ends the game and removes the shapes
             shapes.callAll('kill');
             end = game.add.text(window.innerWidth*0.5,window.innerHeight*0.4,"Game Over\nYour Score "+score,{font:"40px Arial bold",fill:"black",align:"center"});
             end.anchor.set(1,0);
@@ -228,4 +264,3 @@ function update(){
     }
  
 }
-
