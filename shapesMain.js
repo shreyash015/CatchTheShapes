@@ -56,8 +56,7 @@ function create() {
             shape.name =num+" : "+ x.toString() + y.toString();
 	        shape.checkWorldBounds = true;
             shape.events.onOutOfBounds.add(alienOut, this);
-	    //alien.anchor.set(1);    
-            
+	    //alien.anchor.set(1);
             shape.body.velocity.y = 20 +Math.random() * 100;
         }
     }
@@ -72,13 +71,13 @@ function create() {
         if(num<10){
             num="0"+num;
         }
-        data.push(game.add.sprite(window.innerWidth-100,pos,num ));
+        data.push(game.add.sprite(window.innerWidth-150,pos,num ));
         data[0].name=num;
         num = game.rnd.integerInRange(1, 11);
         if(num<10){
             num="0"+num;
         }
-        data.push(game.add.sprite(window.innerWidth-50,pos, num));
+        data.push(game.add.sprite(window.innerWidth-100,pos, num));
         data[1].name=num;
         choice.push(data);
     }
@@ -94,16 +93,35 @@ function create() {
     
     
 }
-var counter = 0;
+var end,start;
+var target = 150;
+var counter = 35;
 function updateCounter(){
-     counter++;     
-     if(counter>20){
-    counter=0;
+     counter--;          
+     if(counter<=0){
+        if(score>=target){
+            level++;
+            counter=80-(level*5);
+            target+=150;
+        }else{
+            game.time.events.remove(tevent);
+            shapes.callAll('kill');
+            end = game.add.text(window.innerWidth*0.5,window.innerHeight*0.4,"Game Over\nYour Score "+score,{font:"40px Arial bold",fill:"black",align:"center"});
+            end.anchor.set(1,0);
+            start = game.add.text(window.innerWidth*0.49,window.innerHeight*0.6,"START",{font:"60px Arial bold",fill:"orange",align:"center"});
+            start.anchor.set(1,0);
+            start.inputEnabled = true;
+            start.input.useHandCursor = true;
+            start.events.onInputDown.add(startGame, this);
+        }
         
      }
-    t.setText('Level ' +level+ ' Time '+ counter);
+    t.setText('Level ' +level+ ' Time '+ counter+" Target "+target+" Life "+life);
 }
 
+function startGame(button) {
+    window.location = 'game.html';
+}
 var level=1;
 var end,restart;
 
@@ -123,11 +141,10 @@ function record(shp){
         store = [];
     }else if(store.length>level){
         store = [];
-        score-=10;
-        scoredata.text="Score "+score;
+        life--;        
     }
 }
-
+var life = 3;
 function checkSelection(){    
         for(var i=0;i<store.length;i++){
             //checking in the combination to find the match
@@ -192,9 +209,22 @@ function alienOut(shape) {
 
 
 function update(){
-    if(score>level*50){
-        t.text = "Level "+level;
+    if(counter>0 && score>=target){
         level++;
+        target+=150;
+        counter=100-(level*5);
+    }
+    if(life<=0){
+        t.setText('Level ' +level+ ' Time '+ counter+" Target "+target+" Life "+life);
+        game.time.events.remove(tevent);
+            shapes.callAll('kill');
+            end = game.add.text(window.innerWidth*0.5,window.innerHeight*0.4,"Game Over\nYour Score "+score,{font:"40px Arial bold",fill:"black",align:"center"});
+            end.anchor.set(1,0);
+            start = game.add.text(window.innerWidth*0.49,window.innerHeight*0.6,"START",{font:"60px Arial bold",fill:"orange",align:"center"});
+            start.anchor.set(1,0);
+            start.inputEnabled = true;
+            start.input.useHandCursor = true;
+            start.events.onInputDown.add(startGame, this);
     }
  
 }
