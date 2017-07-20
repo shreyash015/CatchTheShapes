@@ -1,4 +1,3 @@
-//var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: create , update: update});
 var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'phaser-example', { preload: preload, create: create , update: update});
 
 function preload() {
@@ -113,7 +112,7 @@ var counter = 90;
 function updateCounter(){
      counter--;
      //checking if the counter reached 0          
-     if(counter=0){
+     if(counter<=0){
         //checking if the score reaches the target or not
         if(score>=target){
             //increasing the level
@@ -153,17 +152,22 @@ var end,restart;
 
 
 var store=[];
-var flag = 0;
+var flag = 0,chk = 0;
 //record function to check the shape clicked, if it is corect one or not
 function record(shp){
     //adding the clicked sprite name to the store array
     store.push(shp.name.substr(0,2));
-    //generates a random object within the defined area
+    //
     shp.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
-    //sets a random velocity to the shape.
     shp.body.velocity.y = 20 + Math.random() * 100;
+    
     checkSelection();
-    //t.text+= " : Flag "+flag;
+    //checking if the first selection is correct or not
+    if(chk == 0){
+        store = [];
+        life--;
+    }
+    //checking for the final selection if it is correct or not
     if(flag==1){
         flag=0;
         store = [];
@@ -172,48 +176,79 @@ function record(shp){
         life--;        
     }
 }
-
-//initial alue of life is set to 3
 var life = 3;
-
-//the function is used to check the user selcted shapes with the combination provided to the right.
 function checkSelection(){    
         for(var i=0;i<store.length;i++){
-            //checking in the combination provided to the right to find the match
+            //checking in the combination to find the match
             for(var j=0;j<5;j++){
-                var k = 0;
+                //var k = 0;
+                chk=0;
+                if(store.length == 1){
+                    if(choice[j][0].name==store[0]){
+                        chk = 1;
+                        return;
+                    }
+                }else{
+                    if(choice[j][0].name==store[0] && choice[j][1].name==store[1]){
+                        flag = 1;
+                        chk=1;
+                        score+=20;
+                        scoredata.text="Score "+score;
+                        for(var l=0;l<2;l++){
+                            var num = game.rnd.integerInRange(1, 11);
+                            if(num<10){
+                                num="0"+num;
+                            }
+                            //creating the new random sprite to add in the combination
+                            var block = game.add.sprite(window.innerWidth-((1-l)*50+100),80+(120*j), num);                            
+                            block.scale.set(0.5);
+                            //deleting the old combination
+                            choice[j][l].destroy(); 
+                            //replacing with the new combination in the combination choice list
+                            choice[j][l] = block;
+                            choice[j][l].name=num;    
+                        }
+                        return;
+                    }
+                }
+                //looping to compare the shapes in the combination list
+                /*
                 while(k<store.length && choice[j][k].name==store[k]){
                     if(k == 1){
                         score+=20;
                         scoredata.text="Score "+score;
                         var x=0;
+                        //replacting the selected cobination with new random generated combination
                         while(x<=k){
-
                             var num = game.rnd.integerInRange(1, 11);
                             if(num<10){
                                 num="0"+num;
                             }
-
-                            //once the selection is satisfies, new shapes are added and the old ones are destroyed
+                            //creating the new random sprite to add in the combination
                             var block = game.add.sprite(window.innerWidth-((1-x)*50+100),80+(120*j), num);                            
                             block.scale.set(0.5);
+                            //deleting the old combination
                             choice[j][x].destroy(); 
+                            //replacing with the new combination in the combination choice list
                             choice[j][x] = block;
                             choice[j][x].name=num;               
                             x++;
                         }
+                        //setting the flag 1 when final selection is also found correct
                         flag=1;
                         return;
                     }
-                    flag=2;
+                    //setting the chk flag to 1 when it finds the first match
+                    chk=1;
                     k++;                    
                 }
+                */
             }
         }
 }
     
 
-//functon defined for objects that go out of the screen boundry
+
 function alienOut(shape) {
 
     //  Move the alien to the top of the screen again
@@ -222,40 +257,37 @@ function alienOut(shape) {
                 num="0"+num;
             }
             var shp;
+            //generating another random sprite and bring it to top of the view
             shp=shapes.create(game.rnd.integerInRange(30,(window.innerWidth*0.8-45)), 45, num);
             shp.inputEnabled = true;
             shp.input.useHandCursor = true;
-            shp.events.onInputDown.add(record, this);
-            // shape.name = game.rnd.integerInRange(1, 11) + x.toString() + y.toString();
+            shp.events.onInputDown.add(record, this);            
             shp.name =num+shape.name.substr(2,5);
             shp.checkWorldBounds = true;
-            shp.events.onOutOfBounds.add(alienOut, this);
-        //alien.anchor.set(1);    
-            
+            shp.events.onOutOfBounds.add(alienOut, this); 
             shp.body.velocity.y = 20 +Math.random() * 100;
 
-    //shape.reset(game.rnd.integerInRange(45,(window.innerWidth*0.8-45)), 45);
-    //score-=5;
-    //t="Level 1";
-    ///scoredata.text="Score "+score;
     //  And give it a new random velocity
     shape.body.velocity.y = 20 + Math.random() * 100;
 }
 
-//this function is run continuusly throughout to update the variables
+
 function update(){
+    //checking the counter if the score meets the target within the given time and change the level,counter and target accordingly
     if(counter>0 && score>=target){
         level++;
         target+=150;
         counter=90-(level*5);
     }
+    //checking if the life becomes 0, and then finish the game
     if(life<=0){
         t.setText('Level ' +level+ ' Time '+ counter+" Target "+target+" Life "+life);
         game.time.events.remove(tevent);
-            //ends the game and removes the shapes
             shapes.callAll('kill');
+            //adding the game over comment
             end = game.add.text(window.innerWidth*0.5,window.innerHeight*0.4,"Game Over\nYour Score "+score,{font:"40px Arial bold",fill:"black",align:"center"});
             end.anchor.set(1,0);
+            //adding the start text button on the view
             start = game.add.text(window.innerWidth*0.49,window.innerHeight*0.6,"START",{font:"60px Arial bold",fill:"orange",align:"center"});
             start.anchor.set(1,0);
             start.inputEnabled = true;
